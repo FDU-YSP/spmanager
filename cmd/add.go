@@ -1,12 +1,12 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2024 shaoyang
 
 */
 package cmd
 
 import (
 	"fmt"
-	"github.com/mitchellh/go-homedir"
+	"github.com/FDU-YSP/spmanager/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -21,40 +21,37 @@ var addCmd = &cobra.Command{
 so far, spmanager only support "alias", "source" and "export" CLI`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if err := cmd.ParseFlags(args); err != nil {
-			f := cmd.PersistentFlags()
-			key := f.Lookup("key")
-			val := f.Lookup("val")
-			fmt.Println(homedir.Dir())
+		allFlags := cmd.Flags()
+		key, _ := allFlags.GetString("key")
+		val, _ := allFlags.GetString("val")
+		if spmCfg := utils.GetSpmanagerConfigFile(); spmCfg != "" {
+			fmt.Println("add shell property to spmanager")
 
-			if key == nil || val == nil {
-				fmt.Println("key or val cannot be empty")
-				return
-			}
+			// read spmanager config file(yaml file)
+			spmanagerCfg := utils.LoadSpmanagerConf(spmCfg)
 
+			spmanagerCfg = append(spmanagerCfg, utils.SpmanagerConf{
+				SpmanagerKey: key,
+				SpmanagerValue: val,
+			})
+			// write spmanager config file
+			utils.WriteSpmanagerConf(spmCfg, spmanagerCfg)
 		} else {
-			fmt.Println(err.Error())
-			fmt.Println("parse flag error")
+			fmt.Println("cannot find spmanager config file, please check your config file.")
 		}
+
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(addCmd)
 
-	addCmd.PersistentFlags().StringP("key", "k", "", "linux shell you want to execute.")
-
-	addCmd.PersistentFlags().StringP("val", "v", "", "your customized shell content.")
-
+	addCmd.Flags().StringP("key", "k" , "", "the shell command you want to execute.")
+	addCmd.Flags().StringP("val", "v", "", "your customized shell content.")
 	addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	// Here you will define your flags and configuration settings.
+	_ = addCmd.MarkFlagRequired("key")
+	_ = addCmd.MarkFlagRequired("val")
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// addCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// must put this line after addCmd.Flags()
+	rootCmd.AddCommand(addCmd)
 }

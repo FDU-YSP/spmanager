@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -22,7 +23,7 @@ func HomeDir() string {
 			if len(p) == 0 {
 				continue
 			}
-			if _, err := os.Stat(filepath.Join(p, ".spmanager", "spm.conf")); err != nil {
+			if _, err := os.Stat(filepath.Join(p, ".spmanager", "spmanager.conf")); err != nil {
 				continue
 			}
 			return p
@@ -82,15 +83,27 @@ func CreateDir(dir string) {
  * @brief: Create a file if it does not exist
  */
 func CreateFile(file string) {
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		os.Create(file)
+	if _, err := os.Create(file); err != nil {
+		fmt.Println("Failed to create config file, " + err.Error())
 	}
 }
 
 func CheckFile(filePath string) bool {
 	if _, err := os.Stat(filePath); err != nil {
-		return false
-	} else {
-		return true
+
+		if os.IsNotExist(err) {
+			return false
+		} else {
+			fmt.Println("Failed to check spmanager config file.")
+		}
 	}
+	return true
+}
+
+func GetSpmanagerConfigFile() string {
+	homeDir := HomeDir()
+	if homeDir != "" {
+		return filepath.Join(homeDir, ".spmanager", "spmanager.conf")
+	}
+	return ""
 }
