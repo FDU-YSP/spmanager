@@ -1,6 +1,5 @@
 /*
 Copyright © 2024 shaoyang
-
 */
 package cmd
 
@@ -29,11 +28,15 @@ so far, spmanager only support "alias", "source" and "export" CLI`,
 
 			// read spmanager config file(yaml file)
 			spmanagerCfg := utils.LoadSpmanagerConf(spmCfg)
-
-			spmanagerCfg = append(spmanagerCfg, utils.SpmanagerConf{
-				SpmanagerKey: key,
+			props := spmanagerCfg.Properties
+			props = append(props, utils.SpmanagerProperties{
+				SpmanagerKey:   key,
 				SpmanagerValue: val,
 			})
+
+			spmanagerCfg.Properties = props
+			spmanagerCfg.Size = len(props)
+
 			// write spmanager config file
 			utils.WriteSpmanagerConf(spmCfg, spmanagerCfg)
 		} else {
@@ -45,9 +48,9 @@ so far, spmanager only support "alias", "source" and "export" CLI`,
 
 func init() {
 
-	addCmd.Flags().StringP("key", "k" , "", "the shell command you want to execute.")
+	addCmd.Flags().StringP("key", "k", "", "the shell command you want to execute.")
 	addCmd.Flags().StringP("val", "v", "", "your customized shell content.")
-	addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	_ = addCmd.MarkFlagRequired("key")
 	_ = addCmd.MarkFlagRequired("val")
